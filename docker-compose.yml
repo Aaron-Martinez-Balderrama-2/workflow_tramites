@@ -9,16 +9,6 @@ services:
     volumes:
       - mongo-data:/data/db
 
-  ollama:
-    image: ollama/ollama:latest
-    container_name: workflow-ollama
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama-data:/root/.ollama
-    # Comando para que descargue el modelo al iniciar si no existe
-    entrypoint: /bin/sh -c "ollama serve & sleep 10 && ollama pull llama3 && wait"
-
   backend:
     build: ./backend
     container_name: workflow-backend
@@ -26,7 +16,6 @@ services:
       - "8080:8080"
     depends_on:
       - mongodb
-      - ollama
     environment:
       - SPRING_DATA_MONGODB_URI=mongodb://mongodb:27017/workflow_db
 
@@ -40,4 +29,3 @@ services:
 
 volumes:
   mongo-data:
-  ollama-data:
