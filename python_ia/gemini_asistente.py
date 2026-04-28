@@ -14,7 +14,7 @@ DEBUG_FILE = os.path.join(BASE_DIR, "ia_debug_output.xml")
 BRAIN_LOG = os.path.join(BASE_DIR, "ia_last_brain_response.txt")
 
 # --- CONFIGURACIÓN ---
-OLLAMA_URL = "http://localhost:11434/api/generate"
+OLLAMA_URL = "http://ollama:11434/api/generate"
 OLLAMA_MODEL = "llama3:latest"
 
 NS = {
