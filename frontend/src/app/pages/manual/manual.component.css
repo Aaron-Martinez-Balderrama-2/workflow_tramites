@@ -1,0 +1,124 @@
+.manual-container {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 64px);
+    background: #f8fafc;
+    width: 100%;
+}
+
+.manual-sidebar {
+    width: 280px;
+    min-width: 280px;
+    background: white;
+    border-right: 1px solid #e2e8f0;
+    padding: 2rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-item {
+    padding: 0.75rem 1rem;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    color: #64748b;
+    font-weight: 500;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.nav-item:hover {
+    background: #f1f5f9;
+    color: #0f172a;
+}
+
+.nav-item.active {
+    background: #eff6ff;
+    color: #2563eb;
+}
+
+.manual-content {
+    flex: 1;
+    padding: 3rem;
+    overflow-y: auto;
+    background: white;
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+}
+
+.manual-header {
+    margin-bottom: 2.5rem;
+    border-bottom: 2px solid #f1f5f9;
+    padding-bottom: 1rem;
+}
+
+.manual-header h1 {
+    font-size: 2.25rem;
+    font-weight: 800;
+    color: #1e293b;
+    letter-spacing: -0.025em;
+}
+
+.section-card {
+    margin-bottom: 2rem;
+    animation: fadeIn 0.3s ease-out;
+}
+
+h2 {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: #334155;
+    margin-bottom: 1rem;
+}
+
+p {
+    color: #475569;
+    line-height: 1.7;
+    margin-bottom: 1.25rem;
+}
+
+.step-box {
+    background: #f8fafc;
+    border-left: 4px solid #2563eb;
+    padding: 1rem 1.5rem;
+    margin: 1.5rem 0;
+    border-radius: 0 0.5rem 0.5rem 0;
+}
+
+.feature-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin-top: 2rem;
+}
+
+.feature-card {
+    padding: 1.5rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.75rem;
+    transition: transform 0.2s;
+}
+
+.feature-card:hover {
+    transform: translateY(-4px);
+    border-color: #2563eb;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Dark mode support */
+:host-context(.dark) .manual-container { background: #0f172a; }
+:host-context(.dark) .manual-sidebar { background: #1e293b; border-color: #334155; }
+:host-context(.dark) .manual-content { background: #1e293b; color: #f1f5f9; box-shadow: none; }
+:host-context(.dark) .manual-header h1 { color: #f8fafc; }
+:host-context(.dark) h2 { color: #e2e8f0; }
+:host-context(.dark) p { color: #cbd5e1; }
+:host-context(.dark) .nav-item { color: #94a3b8; }
+:host-context(.dark) .nav-item:hover { background: #334155; color: white; }
+:host-context(.dark) .nav-item.active { background: #1e3a8a; color: #60a5fa; }
+:host-context(.dark) .step-box { background: #0f172a; border-color: #3b82f6; }
+:host-context(.dark) .feature-card { border-color: #334155; }

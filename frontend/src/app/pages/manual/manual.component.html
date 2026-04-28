@@ -1,0 +1,111 @@
+<div class="manual-container transition-colors duration-300">
+  <!-- Sidebar del Manual -->
+  <aside class="manual-sidebar shadow-lg z-10">
+    <div class="px-2 mb-6">
+      <h3 class="text-xs font-bold text-slate-400 uppercase tracking-widest">Documentación</h3>
+    </div>
+    
+    <div class="nav-item" [class.active]="seccionActual === 'introduccion'" (click)="cambiarSeccion('introduccion')">
+      <span>📖</span> Introducción
+    </div>
+    
+    <div class="nav-item" [class.active]="seccionActual === 'administrador'" (click)="cambiarSeccion('administrador')">
+      <span>🔐</span> Manual de Administrador
+    </div>
+    
+    <div class="nav-item" [class.active]="seccionActual === 'disenador'" (click)="cambiarSeccion('disenador')">
+      <span>🎨</span> Manual de Diseñador
+    </div>
+    
+    <div class="nav-item" [class.active]="seccionActual === 'funcionario'" (click)="cambiarSeccion('funcionario')">
+      <span>👔</span> Manual de Funcionario
+    </div>
+    
+    <div class="nav-item" [class.active]="seccionActual === 'sistema'" (click)="cambiarSeccion('sistema')">
+      <span>⚙️</span> Uso del Sistema
+    </div>
+  </aside>
+
+  <!-- Contenido Dinámico -->
+  <main class="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 p-8">
+    <div class="manual-content rounded-xl shadow-sm">
+      
+      <!-- INTRODUCCION -->
+      <div *ngIf="seccionActual === 'introduccion'" class="section-card">
+        <div class="manual-header">
+          <h1>Bienvenidos a PolicyFlow AI</h1>
+        </div>
+        <p>
+          PolicyFlow AI es una plataforma avanzada de gestión de procesos de negocio (BPM) potenciada por Inteligencia Artificial Local. 
+          Este sistema permite modelar, ejecutar y supervisar trámites complejos de manera eficiente y segura.
+        </p>
+        <div class="feature-grid">
+          <div class="feature-card">
+            <h2 class="text-primary-600">IA Local</h2>
+            <p>Privacidad total. Todo el procesamiento de IA ocurre en tus propios servidores usando Ollama.</p>
+          </div>
+          <div class="feature-card">
+            <h2 class="text-emerald-600">BPMN 2.0</h2>
+            <p>Estándar internacional para el modelado de procesos de negocio.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ADMINISTRADOR -->
+      <div *ngIf="seccionActual === 'administrador'" class="section-card">
+        <div class="manual-header">
+          <h1>Manual para Administrador</h1>
+        </div>
+        <h2>Gestión de Seguridad y Usuarios</h2>
+        <p>Como administrador, usted es el responsable de mantener la integridad y seguridad del sistema.</p>
+        <div class="step-box">
+          <strong>Control de Usuarios:</strong> Desde el panel de Administración, puede crear, editar y dar de baja usuarios, asignándoles roles específicos (Administrador, Diseñador, Funcionario).
+        </div>
+        <h2>Configuración de Áreas</h2>
+        <p>Defina las áreas de trabajo o departamentos. Cada área permitirá agrupar funcionarios y asignarles tareas específicas según su jurisdicción.</p>
+      </div>
+
+      <!-- DISEÑADOR -->
+      <div *ngIf="seccionActual === 'disenador'" class="section-card">
+        <div class="manual-header">
+          <h1>Manual para Diseñador</h1>
+        </div>
+        <h2>Modelado Asistido por IA</h2>
+        <p>El diseñador utiliza el lienzo BPMN para dar vida a las políticas de negocio. Gracias al asistente Ollama AI, puede editar diagramas usando lenguaje natural.</p>
+        <div class="step-box">
+          <strong>Comandos de Voz/Texto:</strong> "Borra la tarea de revisión", "Crea un inicio llamado Solicitud", "Añade un carril para Legal".
+        </div>
+        <h2>Publicación de Trámites</h2>
+        <p>Una vez finalizado el modelo, utilice el botón <strong>"Generar Sistema"</strong> para convertir el dibujo en un trámite funcional que los funcionarios puedan ejecutar.</p>
+      </div>
+
+      <!-- FUNCIONARIO -->
+      <div *ngIf="seccionActual === 'funcionario'" class="section-card">
+        <div class="manual-header">
+          <h1>Manual para Funcionario</h1>
+        </div>
+        <h2>Gestión de Trámites Activos</h2>
+        <p>El funcionario es el motor operativo del sistema. Su labor es completar las tareas asignadas a su área.</p>
+        <div class="step-box">
+          <strong>Bandeja de Entrada:</strong> Revise los trámites pendientes, abra los detalles y complete los requisitos solicitados para avanzar el flujo.
+        </div>
+        <p>El sistema notificará automáticamente al siguiente responsable cuando usted complete su labor.</p>
+      </div>
+
+      <!-- SISTEMA -->
+      <div *ngIf="seccionActual === 'sistema'" class="section-card">
+        <div class="manual-header">
+          <h1>Manual de Uso General</h1>
+        </div>
+        <h2>Interfaz de Usuario</h2>
+        <p>PolicyFlow AI cuenta con un diseño adaptable y modo oscuro integrado.</p>
+        <ul>
+          <li><strong>Barra Lateral:</strong> Navegación principal entre módulos.</li>
+          <li><strong>Cambio de Tema:</strong> Use el icono de sol/luna en la cabecera para alternar entre temas.</li>
+          <li><strong>Seguridad:</strong> El sistema cierra sesión automáticamente tras periodos de inactividad para proteger los datos.</li>
+        </ul>
+      </div>
+
+    </div>
+  </main>
+</div>

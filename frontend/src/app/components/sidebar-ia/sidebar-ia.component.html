@@ -1,0 +1,38 @@
+<div class="flex flex-col h-full bg-surface-light dark:bg-surface-dark transition-colors duration-300">
+  <div class="p-4 border-b border-borderCol-light dark:border-borderCol-dark bg-slate-50 dark:bg-slate-900 transition-colors duration-300">
+    <div class="flex items-center">
+      <div class="w-2 h-2 rounded-full bg-primary-500 animate-pulse mr-2"></div>
+      <h3 class="text-slate-800 dark:text-white font-semibold">Gemini Copilot</h3>
+    </div>
+    <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Órdenes asistidas por IA para flujos BPMN.</p>
+  </div>
+  
+  <div class="flex-1 p-4 overflow-y-auto space-y-4">
+    <!-- Chat Bubbles -->
+    <div *ngFor="let m of mensajes" class="flex flex-col" [ngClass]="{'items-end': m.esUsuario, 'items-start': !m.esUsuario}">
+      <div [ngClass]="{
+        'bg-primary-50 dark:bg-primary-900/30 text-primary-900 dark:text-primary-100 rounded-tr-sm border-primary-200 dark:border-primary-800': m.esUsuario,
+        'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-tl-sm border-borderCol-light dark:border-borderCol-dark': !m.esUsuario
+      }" class="text-sm p-3 rounded-2xl border shadow-sm max-w-[90%]">
+        {{ m.texto }}
+      </div>
+      <span class="text-[10px] text-slate-400 dark:text-slate-500 mt-1 mx-1">{{ m.tiempo }}</span>
+    </div>
+
+    <!-- Spinner cargando -->
+    <div *ngIf="cargando" class="flex items-center space-x-2 p-2">
+      <div class="w-2 h-2 bg-primary-500 rounded-full animate-bounce"></div>
+      <div class="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style="animation-delay: 0.2s"></div>
+      <div class="w-2 h-2 bg-primary-500 rounded-full animate-bounce" style="animation-delay: 0.4s"></div>
+    </div>
+  </div>
+
+  <div class="p-4 bg-slate-50 dark:bg-slate-900 border-t border-borderCol-light dark:border-borderCol-dark transition-colors duration-300">
+    <div class="relative">
+      <input type="text" [(ngModel)]="promptActual" (keyup.enter)="enviarMensaje()" placeholder="Ordena un cambio al flujo..." class="w-full bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 text-sm rounded-md pl-4 pr-10 py-2.5 border border-borderCol-light dark:border-borderCol-dark focus:outline-none focus:border-primary-500 focus:ring-1 focus:ring-primary-500 transition-all shadow-sm">
+      <button (click)="enviarMensaje()" class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-primary-600 hover:text-primary-700 dark:text-primary-400 dark:hover:text-primary-300 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"></path></svg>
+      </button>
+    </div>
+  </div>
+</div>

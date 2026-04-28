@@ -1,0 +1,31 @@
+
+@import "bpmn-js/dist/assets/diagram-js.css";
+@import "bpmn-js/dist/assets/bpmn-font/css/bpmn.css";
+@import "@bpmn-io/properties-panel/dist/assets/properties-panel.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Transiciones suaves entre temas */
+body {
+  @apply bg-bg-light text-slate-800 font-sans antialiased m-0 p-0 min-h-screen transition-colors duration-300;
+}
+
+.dark body {
+  @apply bg-bg-dark text-slate-200;
+}
+
+/* Scrollbar corporativo */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  @apply bg-slate-100 dark:bg-slate-800;
+}
+::-webkit-scrollbar-thumb {
+  @apply bg-slate-300 dark:bg-slate-600 rounded-full;
+}
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-slate-400 dark:bg-slate-500;
+}
