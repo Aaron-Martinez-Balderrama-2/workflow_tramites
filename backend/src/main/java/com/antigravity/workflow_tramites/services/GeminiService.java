@@ -16,7 +16,7 @@ import java.util.stream.Collectors;
 @Service
 public class GeminiService {
 
-    @Value("${gemini.api.key}")
+    @Value("${gemini.api.key:}")
     private String apiKey;
 
     public String procesarPrompt(String promptUsuario, Object diagramaActual, String base64Image, String base64Audio) {
@@ -42,6 +42,13 @@ public class GeminiService {
         String input = "Analiza usurpacion de funciones en este BPMN.";
         String resultado = ejecutarPython(input, "analisis", "null", "null", diagramaPath);
         return "{\"mensaje\": \"" + resultado.replace("\"", "\\\"").replace("\n", "\\n") + "\"}";
+    }
+
+    public String autoLlenarFormulario(String promptUsuario, String formMetadata, String base64Audio) {
+        String metadataPath = saveTextToFile(formMetadata != null ? formMetadata : "", "ia_form_meta", ".xml");
+        String audioPath = saveBase64ToFile(base64Audio, "ia_input_audio", ".mp3");
+        
+        return ejecutarPython(promptUsuario != null ? promptUsuario : "", "llenado", "null", audioPath, metadataPath);
     }
 
     private String saveBase64ToFile(String base64, String prefix, String suffix) {

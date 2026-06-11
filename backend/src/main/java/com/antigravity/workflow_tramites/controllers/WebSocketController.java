@@ -19,4 +19,16 @@ public class WebSocketController {
         // Podemos añadir timestamps o validaciones aquí si es necesario
         return payload;
     }
+
+    // El cliente envía a /app/tramite/{tramiteId}
+    // y esto se retransmite a /topic/tramite/{tramiteId}
+    @MessageMapping("/tramite/{tramiteId}")
+    @SendTo("/topic/tramite/{tramiteId}")
+    public Map<String, Object> syncFormulario(@DestinationVariable String tramiteId, Map<String, Object> payload) {
+        // payload debería contener: 
+        // { emisorId: "...", campoId: "presupuesto", valor: "500", timestamp: "..." }
+        // Se añade un timestamp en el servidor para garantizar sincronización correcta
+        payload.put("serverTimestamp", System.currentTimeMillis());
+        return payload;
+    }
 }

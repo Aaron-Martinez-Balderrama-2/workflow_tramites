@@ -195,7 +195,7 @@ export class AdminComponent implements OnInit {
   usuarioEditandoId: string | null = null;
   confirmarEliminacion: string | null = null;
 
-  private apiBaseUrl = 'http://localhost:8081/api';
+  private apiBaseUrl = '/api';
 
   constructor(
     private usuarioService: UsuarioService, 

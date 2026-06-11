@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Métricas del Software - Workflow Trámites</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+            line-height: 1.6;
+            margin: 20px auto;
+            max-width: 1000px;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: #2c3e50;
+        }
+        h1 {
+            border-bottom: 2px solid #3498db;
+            padding-bottom: 10px;
+        }
+        h2 {
+            margin-top: 30px;
+            color: #2980b9;
+        }
+        p {
+            margin-bottom: 15px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        th, td {
+            padding: 12px 15px;
+            text-align: center;
+            border: 1px solid #ddd;
+        }
+        th {
+            background-color: #34495e;
+            color: white;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.9em;
+        }
+        tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+        tr:hover {
+            background-color: #f1f1f1;
+        }
+        .highlight {
+            background-color: #e8f4f8;
+            font-weight: bold;
+        }
+        .formula {
+            background-color: #ecf0f1;
+            padding: 15px;
+            border-left: 5px solid #3498db;
+            margin: 20px 0;
+            font-family: monospace;
+            font-size: 1.1em;
+        }
+        ul {
+            margin-bottom: 20px;
+        }
+        li {
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Métricas del Software: Workflow Trámites Inteligente</h1>
+    <p>El presente documento aplica dos tipos de métricas de software sobre el proyecto de desarrollo <strong>Workflow Trámites Inteligente</strong>, el cual implementa un motor BPMN propio, Formularios Dinámicos y un enrutamiento impulsado por Inteligencia Artificial Local (Whisper / NLP).</p>
+    
+    <h2>1. Métricas Orientadas al Tamaño</h2>
+    <p>Se ha realizado un conteo real sobre el repositorio del proyecto (Frontend Angular, Backend Spring Boot y Servicio IA Python). Se excluyeron carpetas autogeneradas (node_modules, venv, target, .git) para obtener únicamente el código fuente escrito por los desarrolladores.</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>PROYECTO</th>
+                <th>KLDC</th>
+                <th>COSTO (USD)</th>
+                <th>TIEMPO (meses)</th>
+                <th>GENTE (pers.)</th>
+                <th>ESFUERZO (p-m)</th>
+                <th>PÁG. DOC</th>
+                <th>ERRORES</th>
+                <th>DEFECTOS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><strong>Workflow Trámites</strong></td>
+                <td>7.4</td>
+                <td>15,000</td>
+                <td>3</td>
+                <td>1</td>
+                <td>3</td>
+                <td>35</td>
+                <td>12</td>
+                <td>8</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <p><em>Nota: KLDC = 7,389 Líneas de Código reales extraídas del repositorio. ESFUERZO = gente × tiempo (personas-mes). Los valores de Errores y Defectos son los detectados durante el ciclo de pruebas y validación del motor SpEL y la IA.</em></p>
+
+    <h3>Indicadores Derivados</h3>
+    <table>
+        <thead>
+            <tr>
+                <th>PROYECTO</th>
+                <th>CALIDAD<br><small>(Errores + Defectos) / KLDC</small></th>
+                <th>PRODUCTIVIDAD<br><small>LDC / Esfuerzo</small></th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr class="highlight">
+                <td><strong>Workflow Trámites</strong></td>
+                <td>2.70</td>
+                <td>2463.00</td>
+            </tr>
+        </tbody>
+    </table>
+    
+    <div class="formula">
+        CALIDAD = (12 + 8) / 7.4 = 2.70<br>
+        PRODUCTIVIDAD = 7389 / 3 = 2463.00 líneas por persona-mes
+    </div>
+
+    <hr style="border: 0; border-top: 1px solid #eee; margin: 40px 0;">
+
+    <h2>2. Métricas Orientadas a la Función (Método IFPUG / Albrecht)</h2>
+    <p>Se describen los componentes funcionales del sistema (Entradas, Salidas, Consultas, Archivos Lógicos Internos y Archivos de Interfaz Externa) para calcular los Puntos de Función Sin Ajustar (PFSA) y el Factor de Ajuste de Valor (VAF).</p>
+
+    <h3>A. Conteo de Componentes Funcionales (PFSA)</h3>
+    <table>
+        <thead>
+            <tr>
+                <th style="text-align: left;">Parámetro de Medición</th>
+                <th>Cuenta</th>
+                <th>Multiplicador (Complejidad Promedio)</th>
+                <th>Subtotal PFSA</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td style="text-align: left;">
+                    <strong>Entradas Externas (EI):</strong><br>
+                    <small>- Crear Trámite Inteligente (NLP Dictation)<br>
+                    - Completar Tarea BPMN (Formularios Dinámicos)<br>
+                    - Modelador Visual BPMN (Guardar Flujo XML)</small>
+                </td>
+                <td>3</td>
+                <td>× 4</td>
+                <td>12</td>
+            </tr>
+            <tr>
+                <td style="text-align: left;">
+                    <strong>Salidas Externas (EO):</strong><br>
+                    <small>- Consola de Operaciones y Mesa de Ayuda<br>
+                    - Monitor de Repositorio Documental<br>
+                    - Alertas de Validación</small>
+                </td>
+                <td>3</td>
+                <td>× 5</td>
+                <td>15</td>
+            </tr>
+            <tr>
+                <td style="text-align: left;">
+                    <strong>Consultas Externas (EQ):</strong><br>
+                    <small>- Filtro inteligente por Sector en la Consola<br>
+                    - Búsqueda en historial de versiones inmutables</small>
+                </td>
+                <td>2</td>
+                <td>× 4</td>
+                <td>8</td>
+            </tr>
+            <tr>
+                <td style="text-align: left;">
+                    <strong>Archivos Lógicos Internos (ILF):</strong><br>
+                    <small>- Colección <em>Tramites</em><br>
+                    - Colección <em>Tareas Instancia</em><br>
+                    - Colección <em>Politicas Negocio (XML)</em><br>
+                    - Colección <em>Usuarios y Sectores</em></small>
+                </td>
+                <td>4</td>
+                <td>× 10</td>
+                <td>40</td>
+            </tr>
+            <tr>
+                <td style="text-align: left;">
+                    <strong>Archivos de Interfaz Externa (EIF):</strong><br>
+                    <small>- Motor Evaluador SpEL (Spring Expression Language)<br>
+                    - Modelo de Lenguaje Whisper (Extracción NLP)</small>
+                </td>
+                <td>2</td>
+                <td>× 7</td>
+                <td>14</td>
+            </tr>
+            <tr class="highlight">
+                <td colspan="3" style="text-align: right;"><strong>Total Puntos de Función Sin Ajustar (PFSA)</strong></td>
+                <td><strong>89</strong></td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h3>B. Cálculo del Factor de Ajuste de Valor (VAF)</h3>
+    <p>Se evaluaron las 14 características generales del sistema en una escala de 0 (Sin influencia) a 5 (Fuerte influencia):</p>
+    <ul>
+        <li>Comunicación de datos (REST, Multipart Audio): <strong>4</strong></li>
+        <li>Procesamiento distribuido (Angular, Spring, Python AI): <strong>5</strong></li>
+        <li>Rendimiento y velocidad de respuesta: <strong>3</strong></li>
+        <li>Configuración del equipamiento utilizada fuertemente: <strong>2</strong></li>
+        <li>Tasa de transacciones (Flujo BPMN): <strong>3</strong></li>
+        <li>Entrada de datos en línea: <strong>5</strong></li>
+        <li>Eficiencia del usuario final (Recepción Inteligente / Voice-to-Text): <strong>5</strong></li>
+        <li>Actualización en línea de archivos maestros: <strong>4</strong></li>
+        <li>Procesamiento complejo (Enrutamiento Dinámico XML + SpEL): <strong>5</strong></li>
+        <li>Reusabilidad del código interno: <strong>4</strong></li>
+        <li>Facilidad de instalación: <strong>2</strong></li>
+        <li>Facilidad de operación (One-Click Dispatch): <strong>5</strong></li>
+        <li>Múltiples sitios de la organización: <strong>1</strong></li>
+        <li>Facilidad de cambios (Requisitos definidos dinámicamente por BPMN): <strong>5</strong></li>
+    </ul>
+    
+    <div class="formula">
+        <strong>Suma de Características (TDI)</strong> = 53<br><br>
+        <strong>Factor de Ajuste (VAF)</strong> = (TDI × 0.01) + 0.65 = (53 × 0.01) + 0.65 = <strong>1.18</strong>
+    </div>
+
+    <h3>C. Puntos de Función Ajustados (PFA)</h3>
+    <div class="formula" style="border-left-color: #27ae60;">
+        <strong>PFA</strong> = PFSA × VAF<br>
+        <strong>PFA</strong> = 89 × 1.18 = <strong>105.02 Puntos de Función</strong>
+    </div>
+
+</body>
+</html>

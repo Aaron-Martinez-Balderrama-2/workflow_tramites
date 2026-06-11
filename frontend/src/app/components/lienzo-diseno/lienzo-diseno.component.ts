@@ -246,12 +246,15 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
       });
       
       // Conectar WebSocket y suscribirse a cambios
-      if (this.empresaId) {
-        this.wsService.conectar(this.empresaId);
+      if (this.empresaId && this.usuarioId) {
+        this.wsService.conectar(this.empresaId, this.usuarioId);
         this.wsService.diagramaActualizado$.subscribe(xmlRemoto => {
            // Importar el XML remoto sin disparar otro evento de cambio local
            this.ignorandoCambioRemoto = true;
-           this.modeler.importXML(xmlRemoto).then(() => {
+           this.importXML(xmlRemoto).then(() => {
+              this.ignorandoCambioRemoto = false;
+           }).catch((err: any) => {
+              console.error("Error importando diagrama remoto:", err);
               this.ignorandoCambioRemoto = false;
            });
         });
@@ -281,9 +284,13 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
     return null;
   }
 
-  importXML(xml: string) {
+  async importXML(xml: string) {
     if (this.modeler) {
-      this.modeler.importXML(xml);
+      try {
+        await this.modeler.importXML(xml);
+      } catch (err) {
+        console.error("Error en importXML:", err);
+      }
     }
   }
 
@@ -291,7 +298,7 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
     const xml = await this.exportXML();
     if(xml) {
        const politicaId = this.idPoliticaActual || "temp";
-       this.http.post('http://localhost:8081/api/sistema/generar/' + politicaId, {}).subscribe({
+       this.http.post('/api/sistema/generar/' + politicaId, {}).subscribe({
           next: (res: any) => {
             alert(res.mensaje || "Sistema Generado Exitosamente");
             this.authService.checkSistemaGenerado().subscribe();
@@ -335,19 +342,17 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
     this.mostrarModalCodigo = true;
   }
 
-  generarDesdeCodigo() {
+  async generarDesdeCodigo() {
     if (this.codigoBPMN && this.codigoBPMN.trim() !== '') {
-      this.importXML(this.codigoBPMN);
+      await this.importXML(this.codigoBPMN);
       this.mostrarModalCodigo = false;
       this.codigoBPMN = '';
       
       // Emitir el cambio a los colaboradores
-      setTimeout(async () => {
-        if(this.empresaId && this.usuarioId) {
-          const xml = await this.exportXML();
-          if(xml) this.wsService.enviarCambio(this.empresaId, xml, this.usuarioId);
-        }
-      }, 500);
+      if(this.empresaId && this.usuarioId) {
+        const xml = await this.exportXML();
+        if(xml) this.wsService.enviarCambio(this.empresaId, xml, this.usuarioId);
+      }
     }
   }
 
@@ -412,12 +417,18 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
     this.imagenBase64 = null;
     this.audioBase64 = null;
 
-    this.http.post('http://localhost:8081/api/politicas/asistente-ia', payload, { responseType: 'text' }).subscribe({
-      next: (res: string) => {
+    this.http.post('/api/politicas/asistente-ia', payload, { responseType: 'text' }).subscribe({
+      next: async (res: string) => {
          if (res && res.includes('bpmn:definitions')) {
-             this.importXML(res);
+             await this.importXML(res);
              // No mostramos el XML en el chat, solo un mensaje de éxito
              this.mensajesChat.push({ texto: "✅ Diagrama actualizado localmente.", soyYo: false });
+             
+             // Emitir el cambio a colaboradores
+             if(this.empresaId && this.usuarioId) {
+                const xml = await this.exportXML();
+                if(xml) this.wsService.enviarCambio(this.empresaId, xml, this.usuarioId);
+             }
          } else {
              // Es una respuesta de texto o un error
              try {
@@ -443,7 +454,7 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
       this.mensajesChat.push({ texto: "🔍 Analizando usurpación de funciones en el diagrama...", soyYo: true });
       this.procesandoIA = true;
       
-      this.http.post('http://localhost:8081/api/politicas/verificar', { diagrama: xml }).subscribe({
+      this.http.post('/api/politicas/verificar', { diagrama: xml }).subscribe({
          next: (res: any) => {
              this.mensajesChat.push({ 
                texto: "📋 REPORTE DE AUDITORÍA:\n\n" + (res.mensaje || "No se detectaron usurpaciones."), 
@@ -463,7 +474,7 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
 
   cargarHistorial() {
     if (this.empresaId) {
-      this.http.get<any[]>('http://localhost:8081/api/politicas/empresa/' + this.empresaId).subscribe({
+      this.http.get<any[]>('/api/politicas/empresa/' + this.empresaId).subscribe({
         next: (res) => this.listaPolitas = res.reverse(),
         error: (err) => console.error("Error cargando historial", err)
       });
@@ -494,7 +505,7 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
     };
 
     if (this.idPoliticaActual) {
-      this.http.put('http://localhost:8081/api/politicas/' + this.idPoliticaActual, payload).subscribe({
+      this.http.put('/api/politicas/' + this.idPoliticaActual, payload).subscribe({
         next: (res: any) => {
           console.log("Update success:", res);
           alert("Diagrama actualizado correctamente");
@@ -503,7 +514,7 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
         error: (err) => console.error("Error al actualizar:", err)
       });
     } else {
-      this.http.post('http://localhost:8081/api/politicas', payload).subscribe({
+      this.http.post('/api/politicas', payload).subscribe({
         next: (res: any) => {
           console.log("Save success:", res);
           this.idPoliticaActual = res.id;
@@ -515,19 +526,17 @@ export class LienzoDisenoComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  cargarPolitica(pol: any) {
+  async cargarPolitica(pol: any) {
     if (pol.xmlBpmn) {
-      this.importXML(pol.xmlBpmn);
+      await this.importXML(pol.xmlBpmn);
       this.idPoliticaActual = pol.id;
       this.mostrarHistorial = false;
       
-      // Emitir el cambio a los colaboradores
-      setTimeout(async () => {
-        if(this.empresaId && this.usuarioId) {
-          const xml = await this.exportXML();
-          if(xml) this.wsService.enviarCambio(this.empresaId, xml, this.usuarioId);
-        }
-      }, 500);
+      // Emitir el cambio a los colaboradores asegurándonos que el canvas ya terminó de renderizar
+      if(this.empresaId && this.usuarioId) {
+        const xml = await this.exportXML();
+        if(xml) this.wsService.enviarCambio(this.empresaId, xml, this.usuarioId);
+      }
     }
   }
 }

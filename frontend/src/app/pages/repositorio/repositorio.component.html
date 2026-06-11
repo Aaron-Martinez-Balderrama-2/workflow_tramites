@@ -1,0 +1,125 @@
+<div class="p-8 bg-slate-50 min-h-screen pb-20">
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-10">
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Repositorio de Expedientes</h1>
+            <p class="text-slate-500 mt-2 text-lg font-medium">Gestión Documental y Control de Versiones.</p>
+        </header>
+
+        <!-- Lista de Trámites -->
+        <div *ngIf="!tramiteSeleccionado">
+            <div *ngIf="cargando" class="text-center p-10">Cargando repositorios...</div>
+            
+            <div *ngIf="!cargando && tramites.length === 0" class="text-center p-10 text-slate-500">
+                No hay expedientes en la empresa.
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <div *ngFor="let tr of tramites" 
+                     (click)="verExpediente(tr)"
+                     class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200 cursor-pointer hover:shadow-md transition-all hover:border-blue-400 group">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="text-xs font-black text-blue-600 bg-blue-50 px-2 py-1 rounded-md">ID: {{ tr.id | slice:-6 }}</span>
+                        <span class="text-[10px] font-bold text-slate-400">{{ tr.fechaCreacion | date:'medium' }}</span>
+                    </div>
+                    <h3 class="text-xl font-bold text-slate-800 group-hover:text-blue-700">{{ tr.clienteNombre || 'Sin Cliente' }}</h3>
+                    <p class="text-sm text-slate-500 mt-2 line-clamp-2">{{ tr.descripcion }}</p>
+                    
+                    <div class="mt-4 pt-4 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs font-bold px-2 py-1 rounded-full" 
+                              [ngClass]="{'bg-yellow-100 text-yellow-700': tr.estado === 'PENDIENTE', 'bg-blue-100 text-blue-700': tr.estado === 'EN_PROCESO', 'bg-green-100 text-green-700': tr.estado === 'FINALIZADO'}">
+                            {{ tr.estado }}
+                        </span>
+                        <span class="text-xs font-bold text-slate-400">{{ tr.historialVersiones?.length || 0 }} versiones</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Visor de Expediente -->
+        <div *ngIf="tramiteSeleccionado" class="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden flex flex-col md:flex-row h-[700px]">
+            <!-- Sidebar: Versiones -->
+            <div class="w-full md:w-1/3 border-r border-slate-200 bg-slate-50 flex flex-col">
+                <div class="p-6 border-b border-slate-200 bg-white flex justify-between items-center">
+                    <h2 class="text-lg font-black text-slate-800">Historial (Git Blame)</h2>
+                    <button (click)="cerrarExpediente()" class="text-slate-400 hover:text-red-500">&times; Cerrar</button>
+                </div>
+                
+                <div class="p-4 overflow-y-auto flex-1 space-y-3">
+                    <div *ngIf="historialVersiones.length === 0" class="text-center text-sm text-slate-400 py-4">
+                        Sin modificaciones registradas.
+                    </div>
+
+                    <div *ngFor="let version of historialVersiones" 
+                         (click)="seleccionarVersion(version)"
+                         class="p-4 rounded-xl cursor-pointer border-2 transition-all relative"
+                         [ngClass]="{'border-blue-500 bg-blue-50 shadow-sm': versionActualSeleccionada?.version === version.version, 'border-transparent bg-white hover:border-slate-300': versionActualSeleccionada?.version !== version.version}">
+                        
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-black px-2 py-0.5 rounded-md" 
+                                  [ngClass]="{'bg-blue-600 text-white': versionActualSeleccionada?.version === version.version, 'bg-slate-200 text-slate-600': versionActualSeleccionada?.version !== version.version}">
+                                v{{ version.version }}
+                            </span>
+                            <span class="text-[10px] font-bold text-slate-400" title="{{ version.fecha }}">{{ version.fecha | date:'short' }}</span>
+                        </div>
+                        
+                        <p class="text-sm font-bold text-slate-800">{{ version.autorNombre || version.autorId || 'Sistema' }}</p>
+                        <p class="text-xs text-slate-500 mt-1"><i class="fas fa-edit mr-1"></i> {{ version.campoModificado || 'Actualización de tarea' }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Main: Datos de la Versión -->
+            <div class="w-full md:w-2/3 flex flex-col bg-white">
+                <div class="p-8 border-b border-slate-100">
+                    <div class="text-[10px] font-black text-blue-500 tracking-widest uppercase mb-1">Expediente Central</div>
+                    <h2 class="text-3xl font-black text-slate-800">{{ tramiteSeleccionado.clienteNombre || 'Expediente Sin Nombre' }}</h2>
+                    <p class="text-sm text-slate-500 mt-1">ID: {{ tramiteSeleccionado.id }}</p>
+                </div>
+                
+                <div class="p-8 overflow-y-auto flex-1 bg-slate-50/50">
+                    <div *ngIf="!versionActualSeleccionada" class="text-center text-slate-400 py-20 font-bold">
+                        Selecciona una versión a la izquierda para ver los datos del expediente en ese punto del tiempo.
+                    </div>
+
+                    <div *ngIf="versionActualSeleccionada">
+                        <div class="mb-6 flex items-center gap-3">
+                            <div class="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-black">
+                                <i class="fas fa-code-branch"></i>
+                            </div>
+                            <div>
+                                <h4 class="text-sm font-bold text-slate-800">Visualizando Versión {{ versionActualSeleccionada.version }}</h4>
+                                <p class="text-xs text-slate-500">Guardado el {{ versionActualSeleccionada.fecha | date:'medium' }}</p>
+                            </div>
+                        </div>
+
+                        <!-- Data Viewer -->
+                        <div class="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-50 border-b border-slate-200 text-xs uppercase font-black text-slate-500">
+                                    <tr>
+                                        <th class="px-6 py-4">Campo / Clave</th>
+                                        <th class="px-6 py-4">Valor Registrado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr *ngFor="let item of versionActualSeleccionada.datosParsed | keyvalue" class="border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors">
+                                        <td class="px-6 py-4 font-bold text-slate-700">{{ item.key }}</td>
+                                        <td class="px-6 py-4 text-slate-600 font-mono text-xs break-all">
+                                            <span *ngIf="item.value === true || item.value === false" class="px-2 py-1 rounded-md text-xs font-bold" [ngClass]="item.value ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'">{{ item.value ? 'SÍ' : 'NO' }}</span>
+                                            <span *ngIf="item.value !== true && item.value !== false">{{ item.value || '-' }}</span>
+                                        </td>
+                                    </tr>
+                                    <tr *ngIf="!versionActualSeleccionada.datosParsed || (versionActualSeleccionada.datosParsed | keyvalue).length === 0">
+                                        <td colspan="2" class="px-6 py-8 text-center text-slate-400 font-bold italic">
+                                            No hay variables guardadas en esta versión.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

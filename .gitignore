@@ -4,6 +4,22 @@ target/
 !**/src/main/**/target/
 !**/src/test/**/target/
 
+### Node / Angular ###
+node_modules/
+dist/
+.angular/
+
+### Python ###
+venv/
+__pycache__/
+*.pyc
+
+### Logs y SO ###
+logs/
+*.log
+.DS_Store
+*.exe
+
 ### STS ###
 .apt_generated
 .classpath

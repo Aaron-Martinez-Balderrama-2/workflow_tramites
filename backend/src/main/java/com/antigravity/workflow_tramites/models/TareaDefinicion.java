@@ -10,7 +10,10 @@ public class TareaDefinicion {
     @Id
     private String id;
     private String nombre;
-    private String requisitos; // Extraído de la documentación del BPMN
-    private String sectorId;   // A qué carril pertenece
+    private String requisitos; // "Checklist" (Separado por comas) O JSON de Formulario
+    private String sectorId;   // A qué área pertenece
     private String empresaId;
+    
+    // ANCLA CON EL XML
+    private String bpmnNodeId;
 }

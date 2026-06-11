@@ -1,1 +1,1 @@
-None
+{"accion": "crear", "tipo_elemento": "startEvent", "nuevo_valor": "Inicio de Trámite", "destino": "Task_Cliente_1"}

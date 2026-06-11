@@ -1,16 +1,20 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Router } from '@angular/router';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../../services/auth/auth.service';
 import { UsuarioService } from '../../services/usuario.service';
 import { FormsModule } from '@angular/forms';
+
+import { DynamicFormComponent } from '../../components/dynamic-form/dynamic-form.component';
+import { DocumentEditorComponent } from '../../components/document-editor/document-editor.component';
 
 declare var webkitSpeechRecognition: any;
 
 @Component({
   selector: 'app-tareas',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, FormsModule],
+  imports: [CommonModule, HttpClientModule, FormsModule, DynamicFormComponent, DocumentEditorComponent],
   template: `
     <div class="p-8 bg-slate-50 min-h-screen pb-20">
       <div class="max-w-7xl mx-auto">
@@ -52,8 +56,11 @@ declare var webkitSpeechRecognition: any;
                     </div>
                     <div class="flex items-center gap-4">
                         <div class="flex flex-col items-end mr-4">
-                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Estado del Flujo</span>
-                            <span class="text-sm font-black text-slate-700">{{ getProgresoTramite(grupo.tramiteId) }}% Completado</span>
+                            <span class="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Motor de Flujo</span>
+                            <span class="text-sm font-black" 
+                                  [ngClass]="getEstadoTramite(grupo.tramiteId) === 'FINALIZADO' ? 'text-emerald-500' : 'text-blue-600'">
+                                {{ getEstadoTramite(grupo.tramiteId) === 'FINALIZADO' ? '✓ CASO CERRADO' : '↻ EN EJECUCIÓN DINÁMICA' }}
+                            </span>
                         </div>
                         <div class="w-10 h-10 rounded-full flex items-center justify-center text-slate-300 group-hover:text-blue-600 transition-all text-xl"
                              [ngClass]="{'rotate-180': grupo.expandido}">
@@ -96,7 +103,9 @@ declare var webkitSpeechRecognition: any;
                                     </div>
 
                                     <div class="bg-slate-50 p-3 rounded-xl mb-6 min-h-[60px] border border-slate-100/50">
-                                        <p class="text-[11px] text-slate-600 line-clamp-3 leading-relaxed italic">{{ tarea.requisitos || 'Atención operativa sin requisitos específicos.' }}</p>
+                                        <p class="text-[11px] text-slate-600 line-clamp-3 leading-relaxed mt-0.5 font-semibold text-xs">
+                                            {{ esJsonFormulario(tarea.requisitos) ? 'Esta tarea contiene un formulario estructurado dinámico.' : (tarea.requisitos || 'Atención operativa sin requisitos específicos.') }}
+                                        </p>
                                     </div>
 
                                     <div class="flex justify-between items-center pt-4 border-t border-slate-50">
@@ -110,6 +119,11 @@ declare var webkitSpeechRecognition: any;
                                                     (click)="abrirModalProceso(tarea); $event.stopPropagation()"
                                                     class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-[10px] font-black rounded-xl shadow-lg shadow-blue-100 transition-all active:scale-95">
                                                 ATENDER
+                                            </button>
+                                            <button *ngIf="tarea.estado === 'COMPLETADA'"
+                                                    (click)="irAlHistorial(tarea.tramiteId); $event.stopPropagation()"
+                                                    class="px-5 py-2.5 bg-green-100 text-green-700 hover:bg-green-200 text-[10px] font-black rounded-xl shadow-sm transition-all active:scale-95">
+                                                VER HISTORIAL
                                             </button>
                                         </div>
                                     </div>
@@ -130,66 +144,79 @@ declare var webkitSpeechRecognition: any;
 
       <!-- Modal de Procesamiento (Checklist + Notas) -->
       <div *ngIf="mostrarModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-md flex items-center justify-center z-50 p-4">
-          <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-3xl overflow-hidden animate-in fade-in zoom-in duration-300">
-              <div class="bg-slate-900 p-10 text-white flex justify-between items-start border-b border-white/10">
+          <div class="bg-white rounded-[2.5rem] shadow-2xl w-full max-w-4xl overflow-hidden animate-in fade-in zoom-in duration-300">
+              <div class="bg-slate-900 p-8 text-white flex justify-between items-start">
                   <div>
-                      <div class="flex items-center gap-2 mb-2">
-                        <span class="px-2 py-0.5 bg-blue-500 text-white text-[9px] font-black rounded uppercase tracking-widest">Protocolo Activo</span>
-                        <span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Caso: {{ getNombreTramite(tareaSeleccionada?.tramiteId) }}</span>
-                      </div>
                       <h2 class="text-3xl font-black">{{ tareaSeleccionada?.nombre }}</h2>
+                      <p class="text-[10px] text-slate-400 mt-2 uppercase tracking-widest">Caso: {{ getNombreTramite(tareaSeleccionada?.tramiteId) }}</p>
                   </div>
-                  <button (click)="cerrarModal()" class="w-12 h-12 rounded-full bg-white/10 flex items-center justify-center text-2xl hover:bg-white/20 transition-all">&times;</button>
+                  <button (click)="cerrarModal()" class="w-10 h-10 rounded-full bg-white/10 flex justify-center items-center hover:bg-white/20">&times;</button>
               </div>
               
-              <div class="p-10 grid grid-cols-1 md:grid-cols-2 gap-12">
-                  <div class="space-y-8">
-                      <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                        <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Requisitos
-                      </h4>
-                      <div class="space-y-3 max-h-[350px] overflow-y-auto pr-4 custom-scroll">
-                          <div *ngFor="let req of requisitosChecklist" 
-                               (click)="req.checked = !req.checked"
-                               class="flex items-center gap-4 p-5 rounded-2xl border-2 transition-all cursor-pointer"
-                               [ngClass]="req.checked ? 'border-blue-500 bg-blue-50/50' : 'border-slate-100 hover:border-slate-200 bg-white'">
-                              <div class="w-6 h-6 rounded-lg flex items-center justify-center transition-all"
-                                   [ngClass]="req.checked ? 'bg-blue-600 text-white' : 'bg-slate-100 text-transparent'">
-                                  <span class="text-xs font-bold">✓</span>
-                              </div>
-                              <span class="text-xs font-bold" [ngClass]="req.checked ? 'text-blue-900' : 'text-slate-600'">{{ req.text }}</span>
+              <!-- Pestañas (Tabs) -->
+              <div class="flex border-b border-slate-200 bg-slate-50 px-8 pt-4">
+                  <button (click)="pestanaActiva = 'datos'" 
+                          [ngClass]="pestanaActiva === 'datos' ? 'border-b-4 border-blue-600 text-blue-600 font-black' : 'text-slate-400 font-bold hover:text-slate-600'"
+                          class="px-6 py-4 transition-all text-sm uppercase tracking-wider">
+                      📋 Datos Operativos
+                  </button>
+                  <button (click)="pestanaActiva = 'documento'" 
+                          [ngClass]="pestanaActiva === 'documento' ? 'border-b-4 border-blue-600 text-blue-600 font-black' : 'text-slate-400 font-bold hover:text-slate-600'"
+                          class="px-6 py-4 transition-all text-sm uppercase tracking-wider">
+                      📝 Redactor Oficial
+                  </button>
+              </div>
+              
+              <!-- Tab 1: Datos Operativos -->
+              <div *ngIf="pestanaActiva === 'datos'" class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8 custom-scroll" style="max-height: 60vh; overflow-y: auto;">
+                  <div class="space-y-6">
+                      <div class="flex justify-between items-center">
+                          <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Formulario Estructurado (BPMN)
+                          </h4>
+
+                      </div>
+                      
+                      <div *ngIf="camposDinamicos.length > 0" class="space-y-4 max-h-[350px] overflow-y-auto pr-2 custom-scroll relative">
+                          <div *ngIf="cargandoIA" class="absolute inset-0 bg-white/60 backdrop-blur-sm z-10 flex items-center justify-center rounded-xl">
+                              <span class="text-xs font-black text-slate-800 animate-pulse bg-white px-4 py-2 rounded-full shadow-lg border border-slate-200">La IA está extrayendo los datos... ✨</span>
                           </div>
+
+                          <app-dynamic-form 
+                              [formSchema]="camposDinamicos"
+                              [(formData)]="formData"
+                              [tramiteId]="tareaSeleccionada?.tramiteId"
+                              [miUsuarioId]="currentUser?.id"
+                              [miNombre]="currentUser?.nombre"
+                              [readonly]="false">
+                          </app-dynamic-form>
+                      </div>
+
+                      <div *ngIf="camposDinamicos.length === 0" class="p-5 border-2 border-dashed border-slate-200 rounded-2xl text-center text-slate-400 text-sm font-bold">
+                          Esta tarea no requiere llenado de formulario específico.
                       </div>
                   </div>
 
-                  <div class="space-y-8">
+                  <div class="space-y-6">
                       <div class="flex justify-between items-center">
                           <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-widest flex items-center gap-2">
-                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Nota Operativa
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span> Nota Operativa (Opcional)
                           </h4>
-                          <button (click)="toggleDictado()" 
-                                  [ngClass]="dictando ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-600'"
-                                  class="w-10 h-10 rounded-full flex items-center justify-center shadow-sm transition-all">
-                              🎙️
-                          </button>
+                          <button (click)="iniciarDictado('notaGlobal')" [ngClass]="grabandoDictado['notaGlobal'] ? 'bg-red-500 text-white animate-pulse' : 'bg-slate-100 text-slate-600'" class="w-8 h-8 rounded-full flex justify-center items-center" title="Dictar Nota">🎙️</button>
                       </div>
-                      <textarea [(ngModel)]="notaActual" placeholder="Describe el estado de atención..."
-                                class="w-full h-32 p-5 bg-slate-50 border-0 rounded-3xl text-xs font-bold text-slate-700 outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none"></textarea>
-                      
-                      <div>
-                          <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-3">Historial Inherente</h4>
-                          <div class="bg-amber-50/30 border border-amber-100 p-5 rounded-3xl max-h-32 overflow-y-auto text-[10px] text-amber-900/60 font-bold whitespace-pre-wrap italic leading-relaxed">
-                              {{ getNotasHeredadas() || 'Sin antecedentes registrados en pasos anteriores.' }}
-                          </div>
-                      </div>
+                      <textarea [(ngModel)]="notaActual" placeholder="Anotaciones extra..." class="w-full h-24 p-4 bg-slate-50 border-0 rounded-2xl text-sm outline-none focus:ring-2 focus:ring-blue-500 resize-none"></textarea>
                   </div>
               </div>
 
-              <div class="p-10 bg-slate-50 flex gap-4">
-                  <button (click)="cerrarModal()" class="flex-1 py-4 text-slate-400 font-black hover:text-slate-600 transition-all">Posponer</button>
-                  <button (click)="completarTareaConNotas()" 
-                          class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-3xl shadow-xl shadow-blue-100 transition-all active:scale-95 flex items-center justify-center gap-3">
-                      FINALIZAR ATENCIÓN
-                  </button>
+              <!-- Tab 2: Redactor Oficial -->
+              <div *ngIf="pestanaActiva === 'documento'" class="p-0 bg-slate-100 flex flex-col custom-scroll" style="height: 65vh;">
+                  <app-document-editor class="flex-1 h-full" [tramiteId]="tareaSeleccionada?.tramiteId"></app-document-editor>
+              </div>
+
+              <!-- Botonera Inferior -->
+              <div class="p-6 bg-white border-t border-slate-100 flex gap-4">
+                  <button (click)="cerrarModal()" class="flex-1 py-4 text-slate-400 font-black">Posponer</button>
+                  <button (click)="completarTareaConNotas()" class="flex-[2] bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl shadow-xl">FINALIZAR TAREA</button>
               </div>
           </div>
       </div>
@@ -243,20 +270,25 @@ export class TareasComponent implements OnInit {
   // Modal Processing
   mostrarModal = false;
   tareaSeleccionada: any = null;
-  requisitosChecklist: any[] = [];
   notaActual: string = '';
   dictando = false;
   recognition: any;
+  pestanaActiva: 'datos' | 'documento' = 'datos';
 
   // Modal Assignment
   mostrarModalAsignar = false;
 
-  private apiBaseUrl = 'http://localhost:8081/api/tramites';
+  // Dynamic Form Variables
+  camposDinamicos: any[] = [];
+  formData: any = {};
+
+  private apiBaseUrl = '/api/tramites';
 
   constructor(
     private http: HttpClient, 
     private authService: AuthService,
-    private usuarioService: UsuarioService
+    private usuarioService: UsuarioService,
+    private router: Router
   ) {
     if ('webkitSpeechRecognition' in window) {
       this.recognition = new webkitSpeechRecognition();
@@ -286,10 +318,14 @@ export class TareasComponent implements OnInit {
   }
 
   cargarDatosBase() {
-    this.http.get<any[]>('http://localhost:8081/api/sectores/empresa/' + this.currentUser.empresaId).subscribe(res => this.sectores = res);
+    this.http.get<any[]>('/api/sectores/empresa/' + this.currentUser.empresaId).subscribe(res => this.sectores = res);
     this.http.get<any[]>(`${this.apiBaseUrl}/empresa/${this.currentUser.empresaId}`).subscribe(res => this.tramites = res);
     this.usuarioService.getUsuariosByEmpresa(this.currentUser.empresaId).subscribe(res => this.usuarios = res);
     this.cargarTareas();
+  }
+
+  irAlHistorial(tramiteId: string) {
+    this.router.navigate(['/repositorio'], { queryParams: { tramiteId: tramiteId } });
   }
 
   cargarTareas() {
@@ -344,6 +380,11 @@ export class TareasComponent implements OnInit {
     return t ? t.porcentajeAvance : 0;
   }
 
+  getEstadoTramite(id: string) {
+    const t = this.tramites.find(tr => tr.id === id);
+    return t ? t.estado : 'DESCONOCIDO';
+  }
+
   getNombreSector(id: string) {
     return this.sectores.find(s => s.id === id)?.nombre || 'Desconocido';
   }
@@ -372,6 +413,16 @@ export class TareasComponent implements OnInit {
     return this.currentUser.rol === 'ADMINISTRADOR' || this.currentUser.areaTrabajo === tarea.sectorId;
   }
 
+  esJsonFormulario(str: string): boolean {
+    if (!str) return false;
+    try {
+      const parsed = JSON.parse(str);
+      return Array.isArray(parsed);
+    } catch (e) {
+      return false;
+    }
+  }
+
   puedeProcesar(tarea: any): boolean {
     return this.currentUser.rol === 'ADMINISTRADOR' || this.currentUser.id === tarea.asignadoA;
   }
@@ -391,36 +442,99 @@ export class TareasComponent implements OnInit {
   abrirModalProceso(tarea: any) {
     this.tareaSeleccionada = tarea;
     this.notaActual = '';
-    this.requisitosChecklist = [];
+    this.camposDinamicos = [];
+    this.formData = {};
+    this.pestanaActiva = 'datos'; // Por defecto iniciar en datos
+
+    // Intenta parsear los requisitos como JSON Arquitectónico
     if (tarea.requisitos) {
-       this.requisitosChecklist = tarea.requisitos.split(/,|\n/).map((r: string) => ({
-          text: r.trim(),
-          checked: false
-       })).filter((r: any) => r.text.length > 0);
+       try {
+          const parsed = JSON.parse(tarea.requisitos);
+          if (Array.isArray(parsed)) {
+             this.camposDinamicos = parsed;
+             this.camposDinamicos.forEach(c => this.formData[c.id] = '');
+          }
+       } catch (e) {
+          console.warn("La metadata de requisitos no es un JSON válido de Camunda.");
+       }
     }
     this.mostrarModal = true;
   }
 
+  cargandoIA = false;
+  grabandoDictado: { [key: string]: boolean } = {};
+
   cerrarModal() {
     this.mostrarModal = false;
-    this.dictando = false;
-    if (this.recognition) this.recognition.stop();
+    this.cargandoIA = false;
+    this.grabandoDictado = {};
   }
 
-  toggleDictado() {
-    if (this.dictando) {
-      this.recognition.stop();
-      this.dictando = false;
-    } else {
-      this.recognition.start();
-      this.dictando = true;
+  iniciarDictado(campoId: string) {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Tu navegador no soporta dictado por voz.");
+      return;
     }
+    
+    if (this.grabandoDictado[campoId]) {
+       this.grabandoDictado[campoId] = false;
+       return;
+    }
+    
+    const recognition = new SpeechRecognition();
+    recognition.lang = 'es-ES';
+    recognition.start();
+    
+    this.grabandoDictado[campoId] = true;
+    
+    recognition.onresult = (event: any) => {
+      const transcript = event.results[0][0].transcript;
+      if (campoId === 'notaGlobal') {
+          this.notaActual = (this.notaActual || '') + ' ' + transcript;
+          this.notaActual = this.notaActual.trim();
+      } else {
+          this.formData[campoId] = (this.formData[campoId] || '') + ' ' + transcript;
+          this.formData[campoId] = this.formData[campoId].trim();
+      }
+      this.grabandoDictado[campoId] = false;
+    };
+    
+    recognition.onerror = () => { this.grabandoDictado[campoId] = false; };
+    recognition.onend = () => { this.grabandoDictado[campoId] = false; };
+  }
+
+  llenarConIA() {
+    const contexto = prompt("Describe la situación o los datos del formulario (la IA los extraerá y llenará los campos automáticamente):");
+    if (!contexto) return;
+    
+    this.cargandoIA = true;
+    const payload = {
+        texto: contexto,
+        metadata: JSON.stringify(this.camposDinamicos),
+        audio: "null"
+    };
+    
+    this.http.post<any>(`${this.apiBaseUrl}/tareas/llenar-ia`, payload).subscribe({
+        next: (res) => {
+            if (res && typeof res === 'object') {
+                Object.keys(res).forEach(key => {
+                    this.formData[key] = res[key];
+                });
+            }
+            this.cargandoIA = false;
+        },
+        error: (err) => {
+            alert("Error al contactar a la IA");
+            this.cargandoIA = false;
+        }
+    });
   }
 
   completarTareaConNotas() {
-    const seleccionados = this.requisitosChecklist.filter(r => r.checked).map(r => r.text);
+    // Empaquetamos las respuestas del formulario dinámico a un JSON plano para el backend
     const payload = {
-      requisitos: seleccionados,
+      requisitos: JSON.stringify(this.formData),
       notas: this.notaActual
     };
     

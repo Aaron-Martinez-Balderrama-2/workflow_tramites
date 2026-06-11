@@ -28,6 +28,8 @@ import { AuthService } from './services/auth/auth.service';
             <!-- Módulos de Fase 3 (Operativos) -->
             <a *ngIf="currentUser?.sistemaGenerado" routerLink="/operaciones" class="hover:text-blue-300">Gestionar Trámites</a>
             <a *ngIf="currentUser?.sistemaGenerado" routerLink="/tareas" class="hover:text-blue-300">Gestionar Tareas</a>
+            <a *ngIf="currentUser?.sistemaGenerado" routerLink="/repositorio" class="hover:text-blue-300 font-bold text-blue-200">📚 Gestor Documental</a>
+            <a *ngIf="currentUser?.sistemaGenerado" routerLink="/reportes" class="hover:text-blue-300 font-bold text-blue-200">📊 Reportes IA</a>
             
             <a routerLink="/manual" class="bg-blue-900/50 px-3 py-1 rounded border border-blue-700 hover:bg-blue-800 transition-colors">Manual</a>
             

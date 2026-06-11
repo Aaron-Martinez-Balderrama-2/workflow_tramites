@@ -42,6 +42,18 @@
         <span *ngIf="isLeftSidebarOpen" class="ml-3">Trámites Activos</span>
       </a>
 
+      <!-- REPOSITORIO DOCUMENTAL -->
+      <a (click)="switchView('repositorio')" [class.bg-primary-50]="currentView === 'repositorio'" class="cursor-pointer flex items-center px-2 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-md transition-all">
+        <span class="min-w-[20px] w-5 h-5 mx-1">📚</span>
+        <span *ngIf="isLeftSidebarOpen" class="ml-3">Gestor Documental</span>
+      </a>
+
+      <!-- REPORTES IA -->
+      <a (click)="switchView('reportes')" [class.bg-primary-50]="currentView === 'reportes'" class="cursor-pointer flex items-center px-2 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-md transition-all">
+        <span class="min-w-[20px] w-5 h-5 mx-1">📊</span>
+        <span *ngIf="isLeftSidebarOpen" class="ml-3">Monitor y Reportes</span>
+      </a>
+
       <!-- MANUAL -->
       <a (click)="switchView('manual')" [class.bg-primary-50]="currentView === 'manual'" class="cursor-pointer flex items-center px-2 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800/50 rounded-md transition-all">
         <span class="min-w-[20px] w-5 h-5 mx-1">📖</span>
@@ -60,6 +72,8 @@
           <span *ngIf="currentView === 'usuarios'">Administración de Usuarios</span>
           <span *ngIf="currentView === 'areas'">Gestión de Áreas de Trabajo</span>
           <span *ngIf="currentView === 'tramites'">Gestor de Instancias y Trámites</span>
+          <span *ngIf="currentView === 'repositorio'">Repositorio Documental y Versiones</span>
+          <span *ngIf="currentView === 'reportes'">Monitor Analítico y Reportes de IA</span>
           <span *ngIf="currentView === 'manual'">Centro de Ayuda y Manuales</span>
         </h2>
         <span *ngIf="currentView === 'modelador'" class="ml-4 px-2.5 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700 text-xs font-medium">Borrador</span>
@@ -92,6 +106,14 @@
       
       <div *ngIf="currentView === 'tramites'" class="p-6 h-full">
         <app-tramites></app-tramites>
+      </div>
+
+      <div *ngIf="currentView === 'repositorio'" class="h-full">
+        <app-repositorio></app-repositorio>
+      </div>
+
+      <div *ngIf="currentView === 'reportes'" class="h-full">
+        <app-reportes></app-reportes>
       </div>
 
       <div *ngIf="currentView === 'manual'" class="h-full">

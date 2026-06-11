@@ -6,7 +6,7 @@ import { BehaviorSubject, tap } from 'rxjs';
   providedIn: 'root'
 })
 export class AuthService {
-  private apiUrl = 'http://localhost:8081/api/auth';
+  private apiUrl = '/api/auth';
   private currentUserSubject = new BehaviorSubject<any>(null);
   public currentUser$ = this.currentUserSubject.asObservable();
 
@@ -57,7 +57,7 @@ export class AuthService {
   checkSistemaGenerado() {
     const user = this.currentUserSubject.value;
     if (user && user.empresaId) {
-       return this.http.get(`http://localhost:8081/api/auth/empresa/${user.empresaId}`).pipe(
+       return this.http.get(`/api/auth/empresa/${user.empresaId}`).pipe(
          tap((empresa: any) => {
             if (empresa.sistemaGenerado !== user.sistemaGenerado) {
               const updatedUser = { ...user, sistemaGenerado: empresa.sistemaGenerado };

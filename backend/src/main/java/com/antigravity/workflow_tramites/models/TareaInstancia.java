@@ -17,6 +17,9 @@ public class TareaInstancia {
     private String asignadoA; // UsuarioId
     private String sectorId;
     private String empresaId;
-    private java.util.List<String> requisitosCompletados;
+    private String requisitosCompletados;
     private String notas;
+    
+    // ANCLA CON EL XML
+    private String bpmnNodeId; 
 }

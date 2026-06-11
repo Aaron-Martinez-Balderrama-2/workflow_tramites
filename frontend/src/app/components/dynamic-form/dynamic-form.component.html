@@ -1,0 +1,101 @@
+<div class="dynamic-form-container relative bg-white rounded-xl shadow-sm border border-slate-200 p-5">
+  
+  <!-- AI Voice Header Control -->
+  <div class="mb-6 flex justify-between items-center bg-gradient-to-r from-blue-50 to-indigo-50 p-4 rounded-lg border border-blue-100">
+    <div>
+      <h4 class="text-blue-900 font-bold flex items-center gap-2 m-0 text-lg">
+        <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+        Completado Automático por IA
+      </h4>
+      <p class="text-sm text-blue-700 m-0 mt-1">Dicta tu solicitud y la Inteligencia Artificial llenará el formulario por ti con 100% de precisión.</p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <span *ngIf="isRecording" class="text-sm font-semibold text-red-500 animate-pulse flex items-center gap-2">
+        <span class="w-2 h-2 bg-red-500 rounded-full"></span> Grabando...
+      </span>
+      <span *ngIf="isProcessing" class="text-sm font-semibold text-indigo-500 flex items-center gap-2">
+        <svg class="animate-spin h-4 w-4 text-indigo-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        Procesando NLP...
+      </span>
+
+      <button 
+        (click)="toggleRecording()" 
+        [disabled]="isProcessing"
+        [ngClass]="{
+          'bg-red-500 hover:bg-red-600 shadow-red-500/50 animate-pulse': isRecording,
+          'bg-blue-600 hover:bg-blue-700 shadow-blue-500/30': !isRecording
+        }"
+        class="transition-all duration-300 flex items-center justify-center w-12 h-12 rounded-full text-white shadow-lg focus:outline-none transform hover:scale-105 disabled:opacity-50">
+        <svg *ngIf="!isRecording" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"></path></svg>
+        <svg *ngIf="isRecording" class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 10a1 1 0 011-1h4a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 01-1-1v-4z"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Cabecera de Auditoría Global -->
+  <div class="audit-header" *ngIf="ultimaModificacion">
+    <i class="fas fa-history"></i> Última modificación por <strong>{{ultimaModificacion.autorNombre}}</strong> hace unos instantes.
+  </div>
+
+  <form *ngIf="formSchema && formSchema.length > 0" class="space-y-4">
+    <div *ngFor="let campo of formSchema" class="field-container">
+      
+      <!-- Label y Git Blame por campo -->
+      <div class="field-header flex justify-between items-end mb-2">
+        <label [for]="campo.id" class="text-sm font-semibold text-slate-700">{{ campo.label || campo.id }}</label>
+        
+        <small class="git-blame-text" *ngIf="modificacionesPorCampo[campo.id]">
+          <i class="fas fa-pen-alt text-xs"></i> {{ modificacionesPorCampo[campo.id].autorNombre }}
+        </small>
+      </div>
+
+      <!-- Inputs según el tipo -->
+      <div [ngSwitch]="campo.type">
+        <!-- Booleano (Checkbox) -->
+        <div *ngSwitchCase="'boolean'" class="flex items-center mt-2">
+          <input type="checkbox" 
+                 class="w-4 h-4 text-blue-600 bg-gray-100 border-gray-300 rounded focus:ring-blue-500"
+                 [id]="campo.id" 
+                 [name]="campo.id"
+                 [(ngModel)]="formData[campo.id]"
+                 (ngModelChange)="onFieldChange(campo.id, $event)"
+                 [disabled]="readonly">
+          <label class="ml-2 text-sm font-medium text-gray-900" [for]="campo.id">
+            Sí / Confirmado
+          </label>
+        </div>
+
+        <!-- Opciones (Select) -->
+        <select *ngSwitchCase="'enum'"
+                class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors"
+                [id]="campo.id"
+                [name]="campo.id"
+                [(ngModel)]="formData[campo.id]"
+                (ngModelChange)="onFieldChange(campo.id, $event)"
+                [disabled]="readonly">
+          <option value="">Seleccione una opción...</option>
+          <option *ngFor="let option of campo.options" [value]="option.id">{{ option.name }}</option>
+        </select>
+
+        <!-- Texto o Número (Default) -->
+        <input *ngSwitchDefault 
+               [type]="campo.type === 'long' ? 'number' : 'text'"
+               class="w-full bg-slate-50 border border-slate-300 text-slate-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 transition-colors"
+               [id]="campo.id" 
+               [name]="campo.id"
+               [(ngModel)]="formData[campo.id]"
+               (ngModelChange)="onFieldChange(campo.id, $event)"
+               [placeholder]="'Ingrese ' + (campo.label || campo.id)"
+               [readonly]="readonly">
+      </div>
+    </div>
+  </form>
+
+  <div *ngIf="!formSchema || formSchema.length === 0" class="text-center text-slate-500 p-8 border-2 border-dashed border-slate-200 rounded-lg">
+    <p>No hay formulario dinámico requerido para este paso.</p>
+  </div>
+</div>

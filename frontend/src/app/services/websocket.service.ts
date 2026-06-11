@@ -13,7 +13,7 @@ export class WebSocketService {
   
   constructor() {
     this.client = new Client({
-      webSocketFactory: () => new SockJS('http://localhost:8081/ws-diagrama'),
+      webSocketFactory: () => new SockJS('/ws-diagrama'),
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000
@@ -29,21 +29,21 @@ export class WebSocketService {
     };
   }
 
-  conectar(empresaId: string) {
+  conectar(empresaId: string, miUsuarioId: string) {
     if(!this.client.active) {
-      this.client.activate();
       this.client.onConnect = () => {
         // Suscribirse a los cambios del diagrama de la empresa actual
         this.client.subscribe(`/topic/diagrama/${empresaId}`, (message: Message) => {
           if (message.body) {
             const payload = JSON.parse(message.body);
             // Ignorar los mensajes enviados por uno mismo
-            if (payload.emisorId !== localStorage.getItem('usuarioId')) {
+            if (payload.emisorId !== miUsuarioId) {
                this.diagramaSubject.next(payload.xml);
             }
           }
         });
       };
+      this.client.activate();
     }
   }
 

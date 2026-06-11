@@ -7,11 +7,13 @@ import { UsuariosComponent } from '../usuarios/usuarios.component';
 import { AreasComponent } from '../areas/areas.component';
 import { TramitesComponent } from '../tramites/tramites.component';
 import { ManualComponent } from '../manual/manual.component';
+import { RepositorioComponent } from '../repositorio/repositorio.component';
+import { ReportesComponent } from '../reportes/reportes.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, LienzoDisenoComponent, SidebarIaComponent, UsuariosComponent, AreasComponent, TramitesComponent, ManualComponent],
+  imports: [CommonModule, LienzoDisenoComponent, SidebarIaComponent, UsuariosComponent, AreasComponent, TramitesComponent, ManualComponent, RepositorioComponent, ReportesComponent],
   templateUrl: './dashboard.component.html'
 })
 export class DashboardComponent implements OnInit {

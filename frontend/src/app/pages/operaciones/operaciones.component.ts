@@ -1,13 +1,14 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { HttpClient, HttpClientModule } from '@angular/common/http';
 import { AuthService } from '../../services/auth/auth.service';
 import { FormsModule } from '@angular/forms';
+import { DynamicFormComponent } from '../../components/dynamic-form/dynamic-form.component';
 
 @Component({
   selector: 'app-operaciones',
   standalone: true,
-  imports: [CommonModule, HttpClientModule, FormsModule],
+  imports: [CommonModule, HttpClientModule, FormsModule, DynamicFormComponent],
   template: `
     <div class="p-8 bg-gray-50 min-h-screen">
       <div class="max-w-7xl mx-auto">
@@ -114,7 +115,21 @@ import { FormsModule } from '@angular/forms';
               <h2 class="text-2xl font-bold mb-2 text-gray-800">{{ editMode ? 'Editar Trámite' : 'Registrar Nuevo Trámite' }}</h2>
               <p class="text-sm text-gray-500 mb-8">{{ editMode ? 'Actualiza la información básica del cliente.' : 'Inicia un nuevo flujo de trabajo en el sistema.' }}</p>
               
-              <div class="space-y-5">
+              <div class="space-y-4 max-h-[50vh] overflow-y-auto pr-1 custom-scroll">
+                  <!-- Recepción Inteligente por Voz -->
+                  <div *ngIf="!editMode" class="bg-blue-50/50 border border-blue-100 rounded-2xl p-6 mb-6 text-center">
+                      <h3 class="text-sm font-black text-blue-800 mb-2">⚡ Recepción Inteligente (One-Click Dispatch)</h3>
+                      <p class="text-xs text-blue-600 mb-4">Dicta el problema. La IA elegirá el Sector correcto y llenará los requisitos específicos automáticamente.</p>
+                      
+                      <button (click)="toggleRecording()" [disabled]="cargandoIA"
+                          [ngClass]="isRecording ? 'bg-red-500 hover:bg-red-600 animate-pulse' : 'bg-blue-600 hover:bg-blue-700'"
+                          class="w-16 h-16 rounded-full text-white shadow-lg flex items-center justify-center mx-auto transition-all disabled:opacity-50">
+                          <span class="text-2xl">{{ isRecording ? '⏹️' : '🎤' }}</span>
+                      </button>
+                      <div *ngIf="cargandoIA" class="mt-4 text-xs font-bold text-blue-600 animate-pulse">
+                          Analizando intención y extrayendo requisitos...
+                      </div>
+                  </div>
                   <div>
                       <label class="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Nombre del Cliente</label>
                       <input [(ngModel)]="nuevoTramite.clienteNombre" type="text" placeholder="Ej. Juan Manuel Rosas"
@@ -123,7 +138,20 @@ import { FormsModule } from '@angular/forms';
                   <div>
                       <label class="block text-xs font-bold text-gray-400 uppercase mb-1.5 ml-1">Descripción / Notas Iniciales</label>
                       <textarea [(ngModel)]="nuevoTramite.descripcion" placeholder="Detalles del trámite o requisitos especiales..."
-                        class="w-full p-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none h-32 resize-none transition-all"></textarea>
+                        class="w-full p-3.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none h-24 resize-none transition-all"></textarea>
+                  </div>
+
+
+                  <!-- Formulario Dinámico de Requisitos (Se muestra cuando la IA extrae el esquema o seleccionamos política) -->
+                  <!-- Formulario Dinámico de Requisitos (Se muestra cuando la IA extrae el esquema o seleccionamos política) -->
+                  <div *ngIf="camposDinamicosInicio.length > 0" class="pt-4 border-t border-gray-100">
+                      <h3 class="text-xs font-black text-blue-600 mb-4 uppercase flex items-center gap-2">
+                        <span class="w-1.5 h-1.5 rounded-full bg-blue-600"></span> Parámetros Iniciales del BPMN
+                      </h3>
+                      <app-dynamic-form 
+                        [formSchema]="camposDinamicosInicio"
+                        [formData]="formDataInicio">
+                      </app-dynamic-form>
                   </div>
               </div>
               
@@ -147,12 +175,22 @@ export class OperacionesComponent implements OnInit {
   mostrarModal = false;
   editMode = false;
   confirmarId: string | null = null;
-  nuevoTramite: any = { clienteNombre: '', descripcion: '' };
+  nuevoTramite: any = { clienteNombre: '', descripcion: '', politicaId: null };
   currentUser: any;
 
-  private apiBaseUrl = 'http://localhost:8081/api';
+  camposDinamicosInicio: any[] = [];
+  formDataInicio: any = {};
+  
+  // Variables de IA
+  isRecording = false;
+  cargandoIA = false;
+  mediaRecorder: any;
+  audioChunks: any[] = [];
+  politicasDisponibles: any[] = [];
 
-  constructor(private http: HttpClient, private authService: AuthService) {}
+  private apiBaseUrl = '/api';
+
+  constructor(private http: HttpClient, private authService: AuthService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit() {
     this.authService.currentUser$.subscribe(user => {
@@ -204,8 +242,106 @@ export class OperacionesComponent implements OnInit {
 
   abrirModalCrear() {
     this.editMode = false;
-    this.nuevoTramite = { clienteNombre: '', descripcion: '' };
+    this.nuevoTramite = { clienteNombre: '', descripcion: '', politicaId: null };
+    this.formDataInicio = {};
+    this.camposDinamicosInicio = [];
+    this.cargarPoliticasDisponibles();
     this.mostrarModal = true;
+
+    // Ya no cargamos campos dinámicos ciegamente, porque aún no sabemos qué política es.
+    // Se cargarán cuando la IA decida la política.
+  }
+
+  cargarPoliticasDisponibles() {
+    this.http.get<any[]>(`${this.apiBaseUrl}/politicas/empresa/${this.currentUser.empresaId}`).subscribe({
+        next: (res) => this.politicasDisponibles = res.filter(p => p.activa),
+        error: (err) => console.error("Error cargando políticas", err)
+    });
+  }
+
+  toggleRecording() {
+    if (this.isRecording) {
+      this.stopRecording();
+    } else {
+      this.startRecording();
+    }
+  }
+
+  startRecording() {
+    navigator.mediaDevices.getUserMedia({ audio: true }).then(stream => {
+      this.mediaRecorder = new MediaRecorder(stream, { mimeType: 'audio/webm' });
+      this.audioChunks = [];
+      
+      this.mediaRecorder.ondataavailable = (e: any) => {
+        if (e.data.size > 0) this.audioChunks.push(e.data);
+      };
+      
+      this.mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(this.audioChunks, { type: 'audio/webm' });
+        this.procesarAudioConIA(audioBlob);
+      };
+      
+      this.mediaRecorder.start();
+      this.isRecording = true;
+    }).catch(err => alert('No se pudo acceder al micrófono.'));
+  }
+
+  stopRecording() {
+    if (this.mediaRecorder && this.mediaRecorder.state !== 'inactive') {
+      this.mediaRecorder.stop();
+      this.mediaRecorder.stream.getTracks().forEach((track: any) => track.stop());
+    }
+    this.isRecording = false;
+  }
+
+  procesarAudioConIA(audioBlob: Blob) {
+    this.cargandoIA = true;
+    
+    // Hardcodeamos el esquema de inicio para la demo de One-Click Dispatch
+    this.camposDinamicosInicio = [
+      { id: 'tipo_tramite', type: 'enum', label: 'Categoría del Incidente', options: [
+        {id: 'hardware', name: 'Problema de Hardware'},
+        {id: 'software', name: 'Problema de Software'},
+        {id: 'redes', name: 'Problema de Redes'},
+        {id: 'mobiliario', name: 'Problema de Mobiliario'}
+      ]}
+    ];
+
+    const formData = new FormData();
+    formData.append('audio', audioBlob, 'grabacion.webm');
+    formData.append('policiesStr', JSON.stringify(this.politicasDisponibles));
+    formData.append('schemaStr', JSON.stringify(this.camposDinamicosInicio));
+
+    this.http.post<any>(`${this.apiBaseUrl}/ai/classify-intent`, formData).subscribe({
+      next: (res) => {
+        this.cargandoIA = false;
+        
+        let data = res;
+        if (typeof res === 'string') {
+            try { data = JSON.parse(res); } catch(e) { console.error("No se pudo parsear:", res); }
+        }
+
+        console.log("Respuesta IA recibida:", data);
+
+        if (data && data.success) {
+          this.nuevoTramite.descripcion = data.transcription || '';
+          this.nuevoTramite.clienteNombre = data.clienteNombre !== "Desconocido" ? data.clienteNombre : this.nuevoTramite.clienteNombre;
+          
+          if (data.selectedPolicyId) {
+            this.nuevoTramite.politicaId = data.selectedPolicyId;
+          }
+          if (data.extractedData) {
+             this.formDataInicio = data.extractedData;
+          }
+          this.cdr.detectChanges();
+        }
+      },
+      error: (err) => {
+        this.cargandoIA = false;
+        console.error(err);
+        alert('Error en el servicio de IA.');
+      }
+    });
   }
 
   seleccionarParaEdicion(t: any) {
@@ -221,7 +357,10 @@ export class OperacionesComponent implements OnInit {
   }
 
   guardarTramite() {
-    if (!this.nuevoTramite.clienteNombre) return;
+    if (!this.nuevoTramite.clienteNombre || this.nuevoTramite.clienteNombre === 'Desconocido') {
+      alert('Por favor ingresa o dicta el Nombre del Cliente antes de iniciar el flujo.');
+      return;
+    }
     
     if (this.editMode) {
       this.http.put(`${this.apiBaseUrl}/tramites/${this.nuevoTramite.id}`, this.nuevoTramite).subscribe({
@@ -234,12 +373,31 @@ export class OperacionesComponent implements OnInit {
     } else {
       const payload = {
         ...this.nuevoTramite,
-        empresaId: this.currentUser.empresaId
+        empresaId: this.currentUser.empresaId,
+        datosDinamicosBPMN: JSON.stringify(this.formDataInicio)
       };
-      this.http.post(`${this.apiBaseUrl}/tramites`, payload).subscribe({
-        next: () => {
-          this.cargarTramites();
-          this.cerrarModal();
+      this.http.post<any>(`${this.apiBaseUrl}/tramites`, payload).subscribe({
+        next: (tramiteCreado) => {
+          // ONE-CLICK DISPATCH: Auto-completar la primera tarea si tenemos requisitos extraídos
+          if (Object.keys(this.formDataInicio).length > 0) {
+              this.http.get<any[]>(`${this.apiBaseUrl}/tramites/tareas/empresa/${this.currentUser.empresaId}`).subscribe(tareas => {
+                  const firstTask = tareas.find(t => t.tramiteId === tramiteCreado.id && t.estado === 'PENDIENTE');
+                  if (firstTask) {
+                      this.http.put(`${this.apiBaseUrl}/tramites/tareas/${firstTask.id}/completar`, {
+                          requisitos: JSON.stringify(this.formDataInicio)
+                      }).subscribe(() => {
+                          this.cargarTramites();
+                          this.cerrarModal();
+                      });
+                  } else {
+                      this.cargarTramites();
+                      this.cerrarModal();
+                  }
+              });
+          } else {
+              this.cargarTramites();
+              this.cerrarModal();
+          }
         },
         error: (err) => alert("Error al crear")
       });
