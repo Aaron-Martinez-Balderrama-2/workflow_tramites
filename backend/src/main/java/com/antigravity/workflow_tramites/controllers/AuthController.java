@@ -25,16 +25,21 @@ public class AuthController {
 
     @PostMapping("/register-admin")
     public ResponseEntity<?> registerAdmin(@RequestBody Usuario usuario) {
-        if (usuarioRepository.findByEmail(usuario.getEmail()) != null) {
-            return ResponseEntity.badRequest().body("{\"mensaje\": \"El email ya está en uso.\"}");
+        try {
+            if (usuarioRepository.findByEmail(usuario.getEmail()) != null) {
+                return ResponseEntity.badRequest().body("{\"mensaje\": \"El email ya está en uso.\"}");
+            }
+            usuario.setRol("ADMINISTRADOR");
+            Usuario savedUser = usuarioRepository.save(usuario);
+            
+            Map<String, Object> response = new HashMap<>();
+            response.put("usuarioId", savedUser.getId());
+            response.put("mensaje", "Administrador registrado. Por favor, registre la empresa.");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(500).body("{\"mensaje\": \"Error interno del servidor: " + e.getMessage() + "\"}");
         }
-        usuario.setRol("ADMINISTRADOR");
-        Usuario savedUser = usuarioRepository.save(usuario);
-        
-        Map<String, Object> response = new HashMap<>();
-        response.put("usuarioId", savedUser.getId());
-        response.put("mensaje", "Administrador registrado. Por favor, registre la empresa.");
-        return ResponseEntity.ok(response);
     }
 
     @PostMapping("/register-empresa/{usuarioId}")
