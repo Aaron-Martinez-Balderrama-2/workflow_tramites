@@ -68,9 +68,9 @@ export class DynamicFormComponent implements OnInit, OnDestroy {
   onFieldChange(campoId: string, event: any) {
     if (this.readonly) return;
     
-    let valor = event.target ? event.target.value : event;
-    if (event.target && event.target.type === 'checkbox') {
-        valor = event.target.checked;
+    let valor = event;
+    if (event && event.target) {
+        valor = event.target.type === 'checkbox' ? event.target.checked : event.target.value;
     }
 
     this.formData[campoId] = valor;
@@ -89,6 +89,28 @@ export class DynamicFormComponent implements OnInit, OnDestroy {
         timestamp: Date.now()
       });
     }
+  }
+
+  // --- Manejo de Tablas Dinámicas ---
+  addTableRow(campoId: string, options: any[]) {
+    if (!this.formData[campoId] || !Array.isArray(this.formData[campoId])) {
+      this.formData[campoId] = [];
+    }
+    const newRow: any = {};
+    options.forEach(opt => newRow[opt.id] = '');
+    this.formData[campoId].push(newRow);
+    this.onFieldChange(campoId, this.formData[campoId]);
+  }
+
+  removeTableRow(campoId: string, index: number) {
+    if (this.formData[campoId] && Array.isArray(this.formData[campoId])) {
+      this.formData[campoId].splice(index, 1);
+      this.onFieldChange(campoId, this.formData[campoId]);
+    }
+  }
+
+  onTableChange(campoId: string) {
+    this.onFieldChange(campoId, this.formData[campoId]);
   }
 
   // --- AI Voice Integration ---
@@ -142,7 +164,7 @@ export class DynamicFormComponent implements OnInit, OnDestroy {
     try {
       // LLamamos al proxy de Spring Boot
       const response: any = await firstValueFrom(
-        this.http.post('/api/ai/transcribe', formData)
+        this.http.post('http://localhost:8081/api/ai/transcribe', formData)
       );
 
       if (response && response.success && response.extractedData) {

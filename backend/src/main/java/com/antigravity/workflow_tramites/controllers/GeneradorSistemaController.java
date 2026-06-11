@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sistema")
-@CrossOrigin(originPatterns = "*")
+@CrossOrigin(origins = "http://localhost:4200")
 public class GeneradorSistemaController {
 
     @Autowired
@@ -45,7 +45,7 @@ public class GeneradorSistemaController {
             String fType = fieldEl.getAttribute("type");
             
             String enumOptions = "";
-            if ("enum".equals(fType)) {
+            if ("enum".equals(fType) || "table".equals(fType)) {
                 org.w3c.dom.NodeList values = fieldEl.getElementsByTagNameNS("*", "value");
                 java.util.List<String> opts = new java.util.ArrayList<>();
                 for(int v = 0; v < values.getLength(); v++){
