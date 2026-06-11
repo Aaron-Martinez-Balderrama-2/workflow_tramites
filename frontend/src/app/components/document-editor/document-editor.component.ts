@@ -38,7 +38,7 @@ import { firstValueFrom } from 'rxjs';
                 <document-editor 
                     *ngIf="configCargada"
                     id="docxEditor" 
-                    documentServerUrl="http://localhost/"
+                    [documentServerUrl]="documentServerUrl"
                     [config]="editorConfig">
                 </document-editor>
                 
@@ -84,6 +84,7 @@ export class DocumentEditorComponent implements OnInit, OnDestroy {
   currentUser: any = null;
   configCargada = false;
   editorConfig: any = {};
+  documentServerUrl = window.location.protocol + "//" + window.location.hostname + ":8085/";
   
   showHistory = false;
   versiones: any[] = [];
