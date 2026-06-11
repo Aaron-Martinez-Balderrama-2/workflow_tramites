@@ -8,7 +8,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/sectores")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(originPatterns = "*")
 public class SectorController {
     @Autowired
     private SectorRepository repository;

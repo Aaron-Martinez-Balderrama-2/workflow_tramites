@@ -10,7 +10,7 @@ import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/sistema")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(originPatterns = "*")
 public class GeneradorSistemaController {
 
     @Autowired

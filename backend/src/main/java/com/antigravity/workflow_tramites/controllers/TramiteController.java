@@ -19,7 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/tramites")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(originPatterns = "*")
 public class TramiteController {
     @Autowired
     private TramiteRepository tramiteRepository;

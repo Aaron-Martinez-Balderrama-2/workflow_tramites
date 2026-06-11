@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/analiticas")
-@CrossOrigin(origins = "http://localhost:4200", allowCredentials = "true")
+@CrossOrigin(originPatterns = "*", allowCredentials = "true")
 public class AnalyticsController {
 
     @Autowired

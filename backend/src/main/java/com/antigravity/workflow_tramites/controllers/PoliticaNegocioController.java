@@ -11,7 +11,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/politicas")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(originPatterns = "*")
 public class PoliticaNegocioController {
 
     @Autowired

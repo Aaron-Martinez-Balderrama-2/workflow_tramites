@@ -31,7 +31,7 @@ import java.nio.charset.StandardCharsets;
 
 @RestController
 @RequestMapping("/api/onlyoffice")
-@CrossOrigin(origins = "http://localhost:4200")
+@CrossOrigin(originPatterns = "*")
 public class OnlyOfficeController {
 
     @Autowired
